@@ -15,6 +15,7 @@
 package com.liferay.bookstore.model.book;
 
 import com.liferay.bookstore.model.author.AuthorQuerier;
+import com.liferay.bookstore.model.author.AuthorService;
 import com.liferay.bookstore.service.ReadOnlyContext;
 
 import java.sql.ResultSet;
@@ -30,9 +31,11 @@ public interface BookQuerier {
 	public long id();
 	public String isbn();
 	public String title();
-	public ReadOnlyContext<AuthorQuerier> fromAuthor();
+	public ReadOnlyContext<AuthorQuerier> author();
 
-	public static Optional<BookQuerier> fromResultSet(ResultSet resultSet) {
+	public static Optional<BookQuerier> fromResultSet(
+		final AuthorService authorService, ResultSet resultSet) {
+
 		try {
 			if (!resultSet.next()) {
 				return Optional.empty();
@@ -41,6 +44,7 @@ public interface BookQuerier {
 			final long id = resultSet.getLong("id");
 			final String isbn = resultSet.getString("isbn");
 			final String title = resultSet.getString("title");
+			final long authorId = resultSet.getLong("authorId");
 
 			return Optional.of(new BookQuerier() {
 				@Override
@@ -59,8 +63,8 @@ public interface BookQuerier {
 				}
 
 				@Override
-				public ReadOnlyContext<AuthorQuerier> fromAuthor() {
-					return null;
+				public ReadOnlyContext<AuthorQuerier> author() {
+					return authorService.withId(Long.toString(authorId));
 				}
 			});
 		}

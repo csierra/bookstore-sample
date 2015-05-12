@@ -17,17 +17,12 @@ package com.liferay.bookstore;
 import com.liferay.bookstore.model.author.AuthorQuerier;
 import com.liferay.bookstore.model.author.AuthorService;
 import com.liferay.bookstore.model.book.BookService;
-import com.liferay.bookstore.service.CorrectResult;
 import com.liferay.bookstore.service.Result;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Spliterator;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 
 /**
@@ -50,23 +45,14 @@ public class Main {
 			author.setBookService(books);
 			books.setAuthorService(author);
 
-			Result<String> result = author
-				.create(a -> a
-					.name("A new User")
-					.books(currentAuthor ->
-							books.create(
-								b -> b
-									.title("A new book")
-									.isbn("ISBN1")
-									.setAuthor(currentAuthor),
-								b -> b
-									.title("Another new book")
-									.isbn("ISBN2")
-									.setAuthor(currentAuthor))
-					))
-				.andMap(AuthorQuerier::id);
+			books
+				.fromTitles("A new book", "Uno").map(
+					bc -> bc
+						.andMap(
+							bq -> bq.author().andMap(AuthorQuerier::name)))
+				.forEach(System.out::println);
 
-			System.out.println(result);
+
 		}
 	}
 

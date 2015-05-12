@@ -15,10 +15,8 @@
 package com.liferay.bookstore.model.book;
 
 import com.liferay.bookstore.Command;
-import com.liferay.bookstore.model.author.AuthorContext;
 import com.liferay.bookstore.model.author.AuthorQuerier;
 import com.liferay.bookstore.model.author.AuthorService;
-import com.liferay.bookstore.service.CommandContext;
 import com.liferay.bookstore.service.CorrectResult;
 import com.liferay.bookstore.service.ErrorResult;
 import com.liferay.bookstore.service.ReadOnlyContext;
@@ -33,7 +31,6 @@ import java.util.Optional;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -57,16 +54,32 @@ public class BookService {
 		return new BookCreationContext(consumer);
 	}
 
-	public Stream<BookContext> create(Consumer<BookBuilder> ... consumer) {
-		return Stream.of(consumer).map(BookCreationContext::new);
+	public Stream<BookContext> create(Consumer<BookBuilder> ... consumers) {
+		return Stream.of(consumers).map(BookCreationContext::new);
+	}
+
+	public Stream<BookContext> create(Stream<Consumer<BookBuilder>> consumers) {
+		return consumers.map(BookCreationContext::new);
 	}
 
 	public BookContext withId(String id) {
 		return null;
 	}
 
-	public Stream<BookContext> fromTitles(String ... titles) {
-		return null;
+	public Stream<BookContext> fromTitles(String ... titles)
+		throws SQLException {
+
+		PreparedStatement preparedStatement =
+			_conn.prepareStatement(
+				"select * from TABLE(X varchar=?) T inner join BOOK on " +
+					"T.x=Book.title");
+
+		preparedStatement.setObject(1, (String[])titles);
+
+		ResultSet resultSet = preparedStatement.executeQuery();
+
+		return StreamSupport.stream(
+			new BookContextSpliterator(resultSet), false);
 	}
 
 	public Stream<BookContext> fromAuthor(
@@ -105,7 +118,7 @@ public class BookService {
 		}
 	}
 
-	private static class BookContextSpliterator
+	private class BookContextSpliterator
 		implements Spliterator<BookContext> {
 
 		private final ResultSet _resultSet;
@@ -117,14 +130,13 @@ public class BookService {
 		@Override
 		public boolean tryAdvance(Consumer<? super BookContext> action) {
 			Optional<BookQuerier> maybeQuerier =
-				BookQuerier.fromResultSet(_resultSet);
+				BookQuerier.fromResultSet(_authorService, _resultSet);
 
 			maybeQuerier.ifPresent(
 				querier -> action.accept(
 					new BookContextFromQuerier(querier)));
 
 			return maybeQuerier.isPresent();
-
 		}
 
 		@Override
@@ -248,7 +260,7 @@ public class BookService {
 			}
 
 			@Override
-			public ReadOnlyContext<AuthorQuerier> fromAuthor() {
+			public ReadOnlyContext<AuthorQuerier> author() {
 				System.out.println(
 					"select * from Author,Book where author.id = " +
 						"book.authorId and book.id = " + id());
