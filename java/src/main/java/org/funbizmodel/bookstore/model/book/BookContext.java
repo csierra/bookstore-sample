@@ -15,10 +15,12 @@
 package org.funbizmodel.bookstore.model.book;
 
 import org.funbizmodel.bookstore.service.Context;
+import org.funbizmodel.bookstore.service.SqlCommand;
 
 /**
  * @author Carlos Sierra Andrés
  */
-public interface BookContext extends Context<BookQuerier> {
+public interface BookContext
+	extends Context<BookQuerier, SqlCommand<BookQuerier>> {
 
 }

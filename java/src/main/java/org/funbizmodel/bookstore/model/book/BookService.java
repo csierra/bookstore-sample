@@ -21,6 +21,7 @@ import org.funbizmodel.bookstore.service.CorrectResult;
 import org.funbizmodel.bookstore.service.ErrorResult;
 import org.funbizmodel.bookstore.service.ReadOnlyContext;
 import org.funbizmodel.bookstore.service.Result;
+import org.funbizmodel.bookstore.service.SqlCommand;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -112,9 +113,11 @@ public class BookService {
 				mapper.apply(_querier));
 		}
 
+
+
 		@Override
-		public void execute(Command<BookQuerier> command) {
-			command.accept(() -> _querier);
+		public void execute(SqlCommand<BookQuerier> command) {
+
 		}
 	}
 
@@ -231,9 +234,10 @@ public class BookService {
 		}
 
 		@Override
-		public void execute(Command<BookQuerier> command) {
+		public void execute(SqlCommand<BookQuerier> command) {
 
 		}
+
 
 		private class BookQuerierFromBuilder implements BookQuerier {
 			private long _id;

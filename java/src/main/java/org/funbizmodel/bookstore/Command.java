@@ -21,5 +21,7 @@ import java.util.function.Consumer;
 /**
  * @author Carlos Sierra Andrés
  */
-public interface Command<T> extends Consumer<CommandContext<T>> {
+public interface Command<C extends CommandContext<C, ?>>
+	extends Consumer<C> {
+
 }

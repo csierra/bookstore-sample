@@ -14,7 +14,6 @@
 
 package org.funbizmodel.bookstore.model.author;
 
-import org.funbizmodel.bookstore.Command;
 import org.funbizmodel.bookstore.model.book.BookContext;
 import org.funbizmodel.bookstore.model.book.BookQuerier;
 import org.funbizmodel.bookstore.model.book.BookService;
@@ -22,12 +21,16 @@ import org.funbizmodel.bookstore.service.CorrectResult;
 import org.funbizmodel.bookstore.service.ErrorResult;
 import org.funbizmodel.bookstore.service.ReadOnlyContext;
 import org.funbizmodel.bookstore.service.Result;
+import org.funbizmodel.bookstore.service.SqlCommand;
+import org.funbizmodel.bookstore.service.SqlCommandContext;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -144,17 +147,8 @@ public class AuthorService {
 		}
 
 		@Override
-		public void execute(Command<AuthorQuerier> command) {
-			try {
-				long id = doInsert();
+		public void execute(SqlCommand<AuthorQuerier> command) {
 
-				command.accept(
-					() -> new AuthorQuerierFromBuilder(id, _authorBuilder));
-			}
-			catch (SQLException e) {
-				_exception = e;
-
-			}
 		}
 
 	}
@@ -187,20 +181,41 @@ public class AuthorService {
 		}
 
 		@Override
-		public void execute(Command<AuthorQuerier> command) {
-			try {
-				withResultSet(
-					(resultset) ->
-						{
-							command.accept(
-								() -> new AuthorQuerierFromResult(resultset));
+		public void execute(SqlCommand<AuthorQuerier> command) {
 
-							return null;
-						});
+			List<String> sqls = new ArrayList<>();
 
-			}
-			catch (SQLException e) {
+			command.accept(new SqlCommandContext<AuthorQuerier>() {
+				@Override
+				public void addSql(String sql) {
+					sqls.add(sql);
+				}
 
+				@Override
+				public AuthorQuerier get() {
+					try {
+						return withResultSet(AuthorQuerierFromResult::new);
+					}
+					catch (SQLException e) {
+						//TODO: append errors to context
+						throw new RuntimeException();
+					}
+				}
+			});
+
+			for (String sql : sqls) {
+				String query = sql + " WHERE id = " + _id;
+
+				try {
+					PreparedStatement preparedStatement =
+						preparedStatement = _conn.prepareStatement(query);
+
+					preparedStatement.executeUpdate();
+				}
+				catch (SQLException e) {
+					//TODO: append errors to context
+					throw new RuntimeException(e);
+				}
 			}
 		}
 
@@ -267,7 +282,6 @@ public class AuthorService {
 		}
 	}
 
-
 	private class AuthorQuerierFromBuilder implements AuthorQuerier {
 
 		private long _id;
@@ -296,4 +310,11 @@ public class AuthorService {
 				new OnlyAuthorContext(Long.toString(_id)));
 		}
 	}
+
+	public static SqlCommand<AuthorQuerier> update(String newName) {
+		return (cc) -> {
+			//FIXME: little bobby tables
+			cc.addSql("UPDATE AUTHOR SET NAME='" + newName+"'");
+		};
+	};
 }

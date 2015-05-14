@@ -19,5 +19,7 @@ import java.util.function.Supplier;
 /**
  * @author Carlos Sierra Andrés
  */
-public interface CommandContext<T> extends Supplier<T> {
+public interface CommandContext<C extends CommandContext<C, Q>, Q>
+	extends Supplier<Q> {
+
 }

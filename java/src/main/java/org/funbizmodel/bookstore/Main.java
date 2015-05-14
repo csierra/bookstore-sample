@@ -22,6 +22,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import static org.funbizmodel.bookstore.model.author.AuthorService.update;
 
 /**
  * @author Carlos Sierra Andrés
@@ -43,14 +44,7 @@ public class Main {
 			author.setBookService(books);
 			books.setAuthorService(author);
 
-			books
-				.fromTitles("A new book", "Uno").map(
-				bc -> bc
-					.andMap(
-						bq -> bq.author().andMap(AuthorQuerier::name)))
-				.forEach(System.out::println);
-
-
+			author.withId("1").execute(update("Jeffrey"));
 		}
 	}
 
