@@ -12,11 +12,10 @@
  * details.
  */
 
-package com.liferay.bookstore;
+package org.funbizmodel.bookstore.service;
 
 /**
  * @author Carlos Sierra Andrés
  */
-public interface BookUpdater {
-	public void title(String newTitle);
+public interface SqlCommandContext {
 }

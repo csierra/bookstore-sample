@@ -12,13 +12,14 @@
  * details.
  */
 
-package com.liferay.bookstore.model.book;
+package org.funbizmodel.bookstore;
 
-import com.liferay.bookstore.service.Context;
+import org.funbizmodel.bookstore.service.CommandContext;
+
+import java.util.function.Consumer;
 
 /**
  * @author Carlos Sierra Andrés
  */
-public interface BookContext extends Context<BookQuerier> {
-
+public interface Command<T> extends Consumer<CommandContext<T>> {
 }

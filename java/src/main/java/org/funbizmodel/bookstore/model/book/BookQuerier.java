@@ -12,16 +12,15 @@
  * details.
  */
 
-package com.liferay.bookstore.model.book;
+package org.funbizmodel.bookstore.model.book;
 
-import com.liferay.bookstore.model.author.AuthorQuerier;
-import com.liferay.bookstore.model.author.AuthorService;
-import com.liferay.bookstore.service.ReadOnlyContext;
+import org.funbizmodel.bookstore.model.author.AuthorQuerier;
+import org.funbizmodel.bookstore.model.author.AuthorService;
+import org.funbizmodel.bookstore.service.ReadOnlyContext;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
-import java.util.function.Function;
 
 /**
  * @author Carlos Sierra Andrés

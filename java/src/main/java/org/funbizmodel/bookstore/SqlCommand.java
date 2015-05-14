@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -12,29 +12,10 @@
  * details.
  */
 
-package com.liferay.bookstore.model.author;
-
-import com.liferay.bookstore.model.book.BookContext;
-
-import java.util.function.Function;
-import java.util.stream.Stream;
+package org.funbizmodel.bookstore;
 
 /**
  * @author Carlos Sierra Andrés
  */
-public class AuthorBuilder {
-	protected String name;
-	protected Function<AuthorContext, Stream<BookContext>> books;
-
-	public AuthorBuilder name(String name) {
-		this.name = name;return this;
-	}
-
-	public AuthorBuilder books(
-		Function<AuthorContext, Stream<BookContext>> books) {
-
-		this.books = books;
-
-		return this;
-	}
+public interface SqlCommand {
 }

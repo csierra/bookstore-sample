@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -12,21 +12,12 @@
  * details.
  */
 
-package com.liferay.bookstore.model.author;
+package org.funbizmodel.bookstore.service;
 
-import com.liferay.bookstore.model.book.BookQuerier;
-import com.liferay.bookstore.service.ReadOnlyContext;
-
-import java.util.stream.Stream;
+import java.util.function.Supplier;
 
 /**
  * @author Carlos Sierra Andrés
  */
-public interface AuthorQuerier {
-	public String id();
-
-	public String name();
-
-	public <R> Stream<? extends ReadOnlyContext<BookQuerier>> books();
-
+public interface CommandContext<T> extends Supplier<T> {
 }

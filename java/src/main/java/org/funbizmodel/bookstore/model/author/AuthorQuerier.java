@@ -12,34 +12,21 @@
  * details.
  */
 
-package com.liferay.bookstore.service;
+package org.funbizmodel.bookstore.model.author;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.funbizmodel.bookstore.model.book.BookQuerier;
+import org.funbizmodel.bookstore.service.ReadOnlyContext;
+
+import java.util.stream.Stream;
 
 /**
  * @author Carlos Sierra Andrés
  */
-public class ErrorResult<R> implements Result<R> {
+public interface AuthorQuerier {
+	public String id();
 
-	List<String> _errors = new ArrayList<>();
+	public String name();
 
-	@Override
-	public List<String> getErrors() {
-		return _errors;
-	}
+	public <R> Stream<? extends ReadOnlyContext<BookQuerier>> books();
 
-	@Override
-	public R get() {
-		throw new RuntimeException(_errors.toString());
-	}
-
-	public void addError(String error) {
-		_errors.add(error);
-	}
-
-	@Override
-	public String toString() {
-		return "Errors: " + getErrors();
-	}
 }

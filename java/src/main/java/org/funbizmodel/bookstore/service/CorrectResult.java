@@ -12,14 +12,37 @@
  * details.
  */
 
-package com.liferay.bookstore.service;
+package org.funbizmodel.bookstore.service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * @author Carlos Sierra Andrés
  */
-public interface Result<R> {
-	public List<String> getErrors();
-	public R get();
+public class CorrectResult<R> implements Result<R> {
+
+	private Supplier<R> _supplier;
+	private R _result;
+
+	public CorrectResult(R result) {
+
+		_result = result;
+	}
+
+	@Override
+	public List<String> getErrors() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public R get() {
+		return _result;
+	}
+
+	@Override
+	public String toString() {
+		return "Result: " + _result.toString();
+	}
 }

@@ -12,14 +12,15 @@
  * details.
  */
 
-package com.liferay.bookstore;
+package org.funbizmodel.bookstore.service;
 
-import com.liferay.bookstore.service.CommandContext;
-
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author Carlos Sierra Andrés
  */
-public interface Command<T> extends Consumer<CommandContext<T>> {
+public interface ReadOnlyContext<Q> {
+
+	<R> Result<R> andMap(Function<Q, R> mapper);
+
 }

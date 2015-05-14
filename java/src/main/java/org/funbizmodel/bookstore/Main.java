@@ -12,17 +12,15 @@
  * details.
  */
 
-package com.liferay.bookstore;
+package org.funbizmodel.bookstore;
 
-import com.liferay.bookstore.model.author.AuthorQuerier;
-import com.liferay.bookstore.model.author.AuthorService;
-import com.liferay.bookstore.model.book.BookService;
-import com.liferay.bookstore.service.Result;
+import org.funbizmodel.bookstore.model.author.AuthorQuerier;
+import org.funbizmodel.bookstore.model.author.AuthorService;
+import org.funbizmodel.bookstore.model.book.BookService;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.stream.Stream;
 
 
 /**
@@ -47,9 +45,9 @@ public class Main {
 
 			books
 				.fromTitles("A new book", "Uno").map(
-					bc -> bc
-						.andMap(
-							bq -> bq.author().andMap(AuthorQuerier::name)))
+				bc -> bc
+					.andMap(
+						bq -> bq.author().andMap(AuthorQuerier::name)))
 				.forEach(System.out::println);
 
 

@@ -12,16 +12,16 @@
  * details.
  */
 
-package com.liferay.bookstore.model.author;
+package org.funbizmodel.bookstore.model.author;
 
-import com.liferay.bookstore.Command;
-import com.liferay.bookstore.model.book.BookContext;
-import com.liferay.bookstore.model.book.BookQuerier;
-import com.liferay.bookstore.model.book.BookService;
-import com.liferay.bookstore.service.CorrectResult;
-import com.liferay.bookstore.service.ErrorResult;
-import com.liferay.bookstore.service.ReadOnlyContext;
-import com.liferay.bookstore.service.Result;
+import org.funbizmodel.bookstore.Command;
+import org.funbizmodel.bookstore.model.book.BookContext;
+import org.funbizmodel.bookstore.model.book.BookQuerier;
+import org.funbizmodel.bookstore.model.book.BookService;
+import org.funbizmodel.bookstore.service.CorrectResult;
+import org.funbizmodel.bookstore.service.ErrorResult;
+import org.funbizmodel.bookstore.service.ReadOnlyContext;
+import org.funbizmodel.bookstore.service.Result;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -12,35 +12,12 @@
  * details.
  */
 
-package com.liferay.bookstore.model.book;
+package org.funbizmodel.bookstore.model.author;
 
-import com.liferay.bookstore.model.author.AuthorContext;
+import org.funbizmodel.bookstore.service.Context;
 
 /**
  * @author Carlos Sierra Andrés
  */
-public class BookBuilder {
-
-	protected AuthorContext _authorContext;
-	protected String _isbn;
-	protected String _title;
-
-	public BookBuilder isbn(String isbn) {
-		_isbn = isbn;
-
-		return this;
-	}
-
-	public BookBuilder title(String title) {
-		_title = title;
-
-		return this;
-	}
-
-	public BookBuilder setAuthor(AuthorContext authorContext) {
-		_authorContext = authorContext;
-
-		return this;
-	}
-
+public interface AuthorContext extends Context<AuthorQuerier> {
 }

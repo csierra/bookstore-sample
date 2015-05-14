@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -12,12 +12,10 @@
  * details.
  */
 
-package com.liferay.bookstore.model.author;
-
-import com.liferay.bookstore.service.Context;
+package org.funbizmodel.bookstore.model.book;
 
 /**
  * @author Carlos Sierra Andrés
  */
-public interface AuthorContext extends Context<AuthorQuerier> {
+public class BookCommandContext {
 }

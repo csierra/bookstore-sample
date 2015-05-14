@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -12,15 +12,13 @@
  * details.
  */
 
-package com.liferay.bookstore.service;
+package org.funbizmodel.bookstore.model.book;
 
-import com.liferay.bookstore.Command;
+import org.funbizmodel.bookstore.service.Context;
 
 /**
  * @author Carlos Sierra Andrés
  */
-public interface Context<Q> extends ReadOnlyContext<Q> {
-
-	public void execute(final Command<Q> command);
+public interface BookContext extends Context<BookQuerier> {
 
 }

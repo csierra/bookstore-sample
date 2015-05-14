@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -12,16 +12,35 @@
  * details.
  */
 
-package com.liferay.bookstore.service;
+package org.funbizmodel.bookstore.model.book;
 
-import java.util.function.Function;
-import java.util.stream.Stream;
+import org.funbizmodel.bookstore.model.author.AuthorContext;
 
 /**
  * @author Carlos Sierra Andrés
  */
-public interface ReadOnlyContext<Q> {
+public class BookBuilder {
 
-	<R> Result<R> andMap(Function<Q, R> mapper);
+	protected AuthorContext _authorContext;
+	protected String _isbn;
+	protected String _title;
+
+	public BookBuilder isbn(String isbn) {
+		_isbn = isbn;
+
+		return this;
+	}
+
+	public BookBuilder title(String title) {
+		_title = title;
+
+		return this;
+	}
+
+	public BookBuilder setAuthor(AuthorContext authorContext) {
+		_authorContext = authorContext;
+
+		return this;
+	}
 
 }
