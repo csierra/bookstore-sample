@@ -129,8 +129,8 @@ class AuthorCreationContext implements AuthorContext {
 	}
 
 	@Override
-	public void execute(SqlCommand<AuthorQuerier> command) {
-
+	public AuthorContext execute(SqlCommand<AuthorQuerier> command) {
+		return this;
 	}
 
 }

@@ -25,6 +25,7 @@ import org.funbizmodel.bookstore.service.SqlCommandContext;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -63,9 +64,10 @@ class OnlyAuthorContext implements AuthorContext {
 	}
 
 	@Override
-	public void execute(SqlCommand<AuthorQuerier> command) {
+	public AuthorContext execute(SqlCommand<AuthorQuerier> command) {
 
 		List<String> sqls = new ArrayList<>();
+		List<String> inserts = new ArrayList<>();
 
 		command.accept(new SqlCommandContext<AuthorQuerier>() {
 			@Override
@@ -74,9 +76,14 @@ class OnlyAuthorContext implements AuthorContext {
 			}
 
 			@Override
+			public void addInsertSql(String sql) {
+				inserts.add(sql);
+			}
+
+			@Override
 			public AuthorQuerier get() {
 				try {
-					return withResultSet(AuthorQuerierFromResult::new);
+					return withResultSet(x -> new AuthorQuerierFromResult(x));
 				}
 				catch (SQLException e) {
 					//TODO: append errors to context
@@ -99,6 +106,20 @@ class OnlyAuthorContext implements AuthorContext {
 				throw new RuntimeException(e);
 			}
 		}
+
+		for (String insert : inserts) {
+			try {
+				Statement statement = _authorService.conn.createStatement();
+
+				statement.execute(insert);
+			}
+			catch (SQLException e) {
+				//TODO: append errors to context
+				throw new RuntimeException(e);
+			}
+		}
+
+		return this;
 	}
 
 	private <T> T withResultSet(

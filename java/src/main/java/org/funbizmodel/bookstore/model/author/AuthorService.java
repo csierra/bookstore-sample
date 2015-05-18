@@ -74,15 +74,37 @@ public class AuthorService {
 
 		consumer.accept(authorUpdater);
 
+		SqlCommand<AuthorQuerier> command = (cc) -> {};
+
 		if (authorUpdater.newName != null) {
-			return (cc) -> {
+			command = command.andThen(cc -> {
 				//FIXME: little bobby tables
 				cc.addSql(
 					"UPDATE AUTHOR SET NAME='" + authorUpdater.newName+"'");
-			};
+			});
 		}
 
-		return (cc) -> {};
+		Stream<BookContext> addedBooks = authorUpdater.addedBooks;
+
+		if (addedBooks != null) {
+			command = command.andThen(cc -> {
+				StringBuilder sb = new StringBuilder();
+
+				AuthorQuerier authorQuerier = cc.get();
+
+				String authorId = authorQuerier.id();
+
+				addedBooks.forEach(bc -> {
+					Long bookId = bc.andMap(BookQuerier::id).get();
+
+					sb.append("INSERT INTO AUTHOR_BOOK (AUTHORID, BOOKID) VALUES (" + authorId + ", " + bookId + ");");
+				});
+
+				cc.addInsertSql(sb.toString());
+			});
+		}
+
+		return command;
 	}
 
 	public Stream<AuthorContext> fromBook(BookContext bookContext) {

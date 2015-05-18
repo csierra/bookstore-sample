@@ -19,11 +19,14 @@ import org.funbizmodel.bookstore.model.author.AuthorQuerier;
 import org.funbizmodel.bookstore.model.author.AuthorService;
 import org.funbizmodel.bookstore.model.book.BookQuerier;
 import org.funbizmodel.bookstore.model.book.BookService;
+import org.funbizmodel.bookstore.service.Result;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.stream.Stream;
+
+import static org.funbizmodel.bookstore.model.author.AuthorService.update;
 
 /**
  * @author Carlos Sierra Andrés
@@ -55,6 +58,10 @@ public class Main {
 
 			AuthorContext zutano = author.create(ab -> ab.name("Zutano"));
 
+			String zutanoId = zutano.andMap(AuthorQuerier::id).get();
+
+
+			//Create author and books... one book has one extra author
 			author.create(ab -> ab.
 					name("Federico").
 					books(books.create(
@@ -64,6 +71,8 @@ public class Main {
 					)
 			).andMap(AuthorQuerier::id);
 
+
+			//Get the authors of each of these two books
 			books.fromTitles("onetitle", "anothertitle").forEach(bc ->
 					author.fromBook(bc).forEach(
 						ac ->
@@ -71,11 +80,24 @@ public class Main {
 					)
 			);
 
+			//Create a new book and assign it a new author
 			books.create(
 				bb -> bb.isbn("thirdisbn").title("yetanothertitle").
 					addAuthors(Stream.of(author.create(ab -> ab.name("Fulano"))))).
 			andMap(BookQuerier::id);
 
+			//Update author changing his name and adding a book. Query the
+			// resulting books of that author
+			Result<Stream<Result<String>>> updatedBooks =
+				author.withId(zutanoId).execute(
+					update(au -> {
+						au.setNewName("Mengano");
+						au.addBooks(books.fromTitles("yetanothertitle"));
+					})).
+					andMap(aq -> aq.books().map(
+						bq -> bq.andMap(BookQuerier::title)));
+
+			updatedBooks.get().forEach(System.out::println);
 		}
 	}
 

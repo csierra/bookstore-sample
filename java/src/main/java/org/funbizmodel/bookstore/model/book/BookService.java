@@ -65,20 +65,22 @@ public class BookService {
 		return null;
 	}
 
-	public Stream<BookContext> fromTitles(String ... titles)
-		throws SQLException {
+	public Stream<BookContext> fromTitles(String ... titles) {
+		try {
+			PreparedStatement preparedStatement =
+				_conn.prepareStatement(
+					"select * from TABLE(X varchar=?) T inner join BOOK on " +
+						"T.x=Book.title");
+			preparedStatement.setObject(1, (String[])titles);
 
-		PreparedStatement preparedStatement =
-			_conn.prepareStatement(
-				"select * from TABLE(X varchar=?) T inner join BOOK on " +
-					"T.x=Book.title");
+			ResultSet resultSet = preparedStatement.executeQuery();
 
-		preparedStatement.setObject(1, (String[])titles);
-
-		ResultSet resultSet = preparedStatement.executeQuery();
-
-		return StreamSupport.stream(
-			new BookContextSpliterator(this, resultSet), false);
+			return StreamSupport.stream(
+				new BookContextSpliterator(this, resultSet), false);
+		}
+		catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public Stream<BookContext> fromAuthor(
@@ -114,8 +116,8 @@ public class BookService {
 		}
 
 		@Override
-		public void execute(SqlCommand<BookQuerier> command) {
-
+		public BookContext execute(SqlCommand<BookQuerier> command) {
+			return this;
 		}
 	}
 
@@ -213,8 +215,8 @@ public class BookService {
 		}
 
 		@Override
-		public void execute(SqlCommand<BookQuerier> command) {
-
+		public BookContext execute(SqlCommand<BookQuerier> command) {
+			return this;
 		}
 
 

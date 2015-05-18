@@ -16,8 +16,19 @@ package org.funbizmodel.bookstore.service;
 
 import org.funbizmodel.bookstore.Command;
 
+import java.util.Objects;
+import java.util.function.Consumer;
+
 /**
  * @author Carlos Sierra Andrés
  */
 public interface SqlCommand<Q> extends Command<SqlCommandContext<Q>> {
+
+	@Override
+	default SqlCommand<Q> andThen(
+		Consumer<? super SqlCommandContext<Q>> after) {
+		Objects.requireNonNull(after);
+
+		return (SqlCommandContext<Q> t) -> { accept(t); after.accept(t); };
+	}
 }

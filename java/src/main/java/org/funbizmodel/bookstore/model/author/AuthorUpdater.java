@@ -14,11 +14,20 @@
 
 package org.funbizmodel.bookstore.model.author;
 
+import org.funbizmodel.bookstore.model.book.BookContext;
+
+import java.util.stream.Stream;
+
 /**
 * @author Carlos Sierra Andrés
 */
 public class AuthorUpdater {
 	protected String newName;
+	protected Stream<BookContext> addedBooks;
+
+	public void addBooks(Stream<BookContext> addedBooks) {
+		this.addedBooks = addedBooks;
+	}
 
 	public void setNewName(String newName) {
 		this.newName = newName;

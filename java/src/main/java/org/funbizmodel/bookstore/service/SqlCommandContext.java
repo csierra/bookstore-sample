@@ -21,4 +21,6 @@ public interface SqlCommandContext<Q>
 	extends CommandContext<SqlCommandContext<Q>, Q> {
 
 	public void addSql(String sql);
+
+	public void addInsertSql(String string);
 }

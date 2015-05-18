@@ -22,6 +22,6 @@ import org.funbizmodel.bookstore.Command;
 public interface Context<Q, C extends Command<?>>
 	extends ReadOnlyContext<Q> {
 
-	public void execute(final C command);
+	public Context<Q, C> execute(final C command);
 
 }
