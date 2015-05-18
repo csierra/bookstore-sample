@@ -14,15 +14,16 @@
 
 package org.funbizmodel.bookstore;
 
+import org.funbizmodel.bookstore.model.author.AuthorContext;
 import org.funbizmodel.bookstore.model.author.AuthorQuerier;
 import org.funbizmodel.bookstore.model.author.AuthorService;
+import org.funbizmodel.bookstore.model.book.BookQuerier;
 import org.funbizmodel.bookstore.model.book.BookService;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-
-import static org.funbizmodel.bookstore.model.author.AuthorService.update;
+import java.util.stream.Stream;
 
 /**
  * @author Carlos Sierra Andrés
@@ -37,6 +38,14 @@ public class Main {
 		try (Connection conn = DriverManager.getConnection(
 			"jdbc:h2:./bookstore", "sa", "")) {
 
+			conn.prepareStatement(
+				"DROP TABLE AUTHOR IF EXISTS; DROP TABLE BOOK IF EXISTS; DROP TABLE AUTHOR_BOOK IF EXISTS;").executeUpdate();
+
+			conn.prepareStatement(
+				"CREATE TABLE AUTHOR(id long primary key auto_increment, name varchar);" +
+				"CREATE TABLE BOOK(id long primary key auto_increment, isbn varchar, title varchar);" +
+				"CREATE TABLE AUTHOR_BOOK (authorId long, bookId long);").executeUpdate();
+
 			AuthorService author = new AuthorService(conn);
 
 			BookService books = new BookService(conn);
@@ -44,7 +53,29 @@ public class Main {
 			author.setBookService(books);
 			books.setAuthorService(author);
 
-			author.withId("1").execute(update("Jeffrey"));
+			AuthorContext zutano = author.create(ab -> ab.name("Zutano"));
+
+			author.create(ab -> ab.
+					name("Federico").
+					books(books.create(
+							bb -> bb.isbn("oneisbn").title("onetitle").addAuthors(Stream.of(zutano)),
+							bb -> bb.isbn("anotherisbn").title("anothertitle")
+						)
+					)
+			).andMap(AuthorQuerier::id);
+
+			books.fromTitles("onetitle", "anothertitle").forEach(bc ->
+					author.fromBook(bc).forEach(
+						ac ->
+							System.out.println(ac.andMap(AuthorQuerier::name))
+					)
+			);
+
+			books.create(
+				bb -> bb.isbn("thirdisbn").title("yetanothertitle").
+					addAuthors(Stream.of(author.create(ab -> ab.name("Fulano"))))).
+			andMap(BookQuerier::id);
+
 		}
 	}
 

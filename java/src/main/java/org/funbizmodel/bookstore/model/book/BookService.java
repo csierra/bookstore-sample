@@ -14,7 +14,7 @@
 
 package org.funbizmodel.bookstore.model.book;
 
-import org.funbizmodel.bookstore.Command;
+import org.funbizmodel.bookstore.model.author.AuthorContext;
 import org.funbizmodel.bookstore.model.author.AuthorQuerier;
 import org.funbizmodel.bookstore.model.author.AuthorService;
 import org.funbizmodel.bookstore.service.CorrectResult;
@@ -28,8 +28,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Optional;
-import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -41,7 +39,7 @@ import java.util.stream.StreamSupport;
 public class BookService {
 
 	private Connection _conn;
-	private AuthorService _authorService;
+	AuthorService _authorService;
 
 	public void setAuthorService(AuthorService authorService) {
 		_authorService = authorService;
@@ -80,14 +78,16 @@ public class BookService {
 		ResultSet resultSet = preparedStatement.executeQuery();
 
 		return StreamSupport.stream(
-			new BookContextSpliterator(resultSet), false);
+			new BookContextSpliterator(this, resultSet), false);
 	}
 
 	public Stream<BookContext> fromAuthor(
 		ReadOnlyContext<AuthorQuerier> authorContext) throws SQLException {
 
 		PreparedStatement preparedStatement =
-			_conn.prepareStatement("select * from BOOK where authorId=?");
+			_conn.prepareStatement(
+				"select * from BOOK B INNER JOIN AUTHOR_BOOK AB ON " +
+					"B.id=AB.bookId where AB.authorId=?");
 
 		preparedStatement.setLong(
 			1, Long.parseLong(authorContext.andMap(AuthorQuerier::id).get()));
@@ -95,10 +95,10 @@ public class BookService {
 		ResultSet resultSet = preparedStatement.executeQuery();
 
 		return StreamSupport.stream(
-			new BookContextSpliterator(resultSet), false);
+			new BookContextSpliterator(this, resultSet), false);
 	}
 
-	private static class BookContextFromQuerier implements BookContext {
+	static class BookContextFromQuerier implements BookContext {
 		private final BookQuerier _querier;
 
 		public BookContextFromQuerier(BookQuerier querier) {
@@ -113,48 +113,9 @@ public class BookService {
 				mapper.apply(_querier));
 		}
 
-
-
 		@Override
 		public void execute(SqlCommand<BookQuerier> command) {
 
-		}
-	}
-
-	private class BookContextSpliterator
-		implements Spliterator<BookContext> {
-
-		private final ResultSet _resultSet;
-
-		public BookContextSpliterator(ResultSet resultSet) {
-			_resultSet = resultSet;
-		}
-
-		@Override
-		public boolean tryAdvance(Consumer<? super BookContext> action) {
-			Optional<BookQuerier> maybeQuerier =
-				BookQuerier.fromResultSet(_authorService, _resultSet);
-
-			maybeQuerier.ifPresent(
-				querier -> action.accept(
-					new BookContextFromQuerier(querier)));
-
-			return maybeQuerier.isPresent();
-		}
-
-		@Override
-		public Spliterator<BookContext> trySplit() {
-			return null;
-		}
-
-		@Override
-		public long estimateSize() {
-			return Long.MAX_VALUE;
-		}
-
-		@Override
-		public int characteristics() {
-			return IMMUTABLE;
 		}
 	}
 
@@ -197,13 +158,9 @@ public class BookService {
 
 				_consumer.accept(_bookBuilder);
 
-				Result<String> authorIdResult =
-					_bookBuilder._authorContext.andMap(
-						AuthorQuerier::id);
-
 				//Merge validation errors
 
-				String sql = createSQL(authorIdResult);
+				String sql = createSQL();
 
 				PreparedStatement preparedStatement =
 					_conn.prepareStatement(
@@ -221,16 +178,38 @@ public class BookService {
 					keysResult.next();
 
 					_createdId = keysResult.getLong(1);
+
+					_bookBuilder._authorContexts.forEach(ac -> {
+						Result<String> authorId = ac.andMap(AuthorQuerier::id);
+
+						try {
+							PreparedStatement authorAddStatement =
+								_conn.prepareStatement(
+								"INSERT INTO AUTHOR_BOOK (authorId, bookId) " +
+									"values (?, ?)");
+							authorAddStatement.setLong(
+								1, Long.parseLong(authorId.get()));
+
+							authorAddStatement.setLong(2, _createdId);
+
+							authorAddStatement.executeUpdate();
+						}
+
+						catch (SQLException e) {
+							e.printStackTrace();
+						}
+
+					});
 				}
+
 			}
 
 			return _createdId;
 		}
 
-		private String createSQL(Result<String> authorIdResult) {
-			return "insert into Book (isbn, title, authorId) " +
-				"values ('" + _bookBuilder._isbn + "', '" +
-				_bookBuilder._title + "', '"+ authorIdResult.get() +"')";
+		private String createSQL() {
+			return "insert into Book (isbn, title) " + "values ('" +
+				_bookBuilder._isbn + "', '" + _bookBuilder._title + "')";
 		}
 
 		@Override
@@ -264,12 +243,8 @@ public class BookService {
 			}
 
 			@Override
-			public ReadOnlyContext<AuthorQuerier> author() {
-				System.out.println(
-					"select * from Author,Book where author.id = " +
-						"book.authorId and book.id = " + id());
-
-				return _authorService.withId("id");
+			public Stream<? extends ReadOnlyContext<AuthorQuerier>> authors() {
+				return _bookBuilder._authorContexts;
 			}
 		}
 	}

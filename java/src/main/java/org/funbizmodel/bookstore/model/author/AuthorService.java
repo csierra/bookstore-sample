@@ -17,43 +17,36 @@ package org.funbizmodel.bookstore.model.author;
 import org.funbizmodel.bookstore.model.book.BookContext;
 import org.funbizmodel.bookstore.model.book.BookQuerier;
 import org.funbizmodel.bookstore.model.book.BookService;
-import org.funbizmodel.bookstore.service.CorrectResult;
-import org.funbizmodel.bookstore.service.ErrorResult;
-import org.funbizmodel.bookstore.service.ReadOnlyContext;
 import org.funbizmodel.bookstore.service.Result;
 import org.funbizmodel.bookstore.service.SqlCommand;
-import org.funbizmodel.bookstore.service.SqlCommandContext;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Spliterator;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * @author Carlos Sierra Andrés
  */
 public class AuthorService {
-	private Connection _conn;
-
+	BookService bookService;
+	Connection conn;
+	
 	public void setBookService(BookService bookService) {
-		_bookService = bookService;
+		this.bookService = bookService;
 	}
 
-	private BookService _bookService;
-
 	public AuthorService(Connection conn) {
-		_conn = conn;
+		this.conn = conn;
 	}
 
 	public AuthorContext create(Consumer<AuthorBuilder> consumer) {
 
-		return new AuthorCreationContext(consumer);
+		return new AuthorCreationContext(this, consumer);
 	}
 
 	public Stream<AuthorContext> create(Consumer<AuthorBuilder> ... consumers) {
@@ -67,254 +60,91 @@ public class AuthorService {
 	}
 
 	public AuthorContext withId(String id) {
-		return new OnlyAuthorContext(id);
+		return new OnlyAuthorContext(this, id);
 	}
 
 	public Stream<AuthorContext> all() {
 		return Stream.<AuthorContext>builder().build();
 	}
 
-	private class AuthorCreationContext implements AuthorContext {
-		private final Consumer<AuthorBuilder> _consumer;
-		private AuthorBuilder _authorBuilder;
-		private volatile long _createdId = -1;
-		private SQLException _exception;
+	public static SqlCommand<AuthorQuerier> update(
+		Consumer<AuthorUpdater> consumer) {
 
-		public AuthorCreationContext(Consumer<AuthorBuilder> consumer) {
-			_consumer = consumer;
+		AuthorUpdater authorUpdater = new AuthorUpdater();
+
+		consumer.accept(authorUpdater);
+
+		if (authorUpdater.newName != null) {
+			return (cc) -> {
+				//FIXME: little bobby tables
+				cc.addSql(
+					"UPDATE AUTHOR SET NAME='" + authorUpdater.newName+"'");
+			};
 		}
 
-		@Override
-		public <R> Result<R> andMap(Function<AuthorQuerier, R> mapper) {
-			try {
-				if (_exception != null) {
-					throw _exception;
-				}
-				long id = doInsert();
-
-				return new CorrectResult<>(
-					mapper.apply(
-						new AuthorQuerierFromBuilder(id, _authorBuilder)));
-
-			}
-			catch (SQLException e) {
-				ErrorResult<R> errorResult = new ErrorResult<>();
-
-				errorResult.addError(e.getMessage());
-
-				return errorResult;
-			}
-		}
-
-		private long doInsert() throws SQLException {
-			if (_createdId == -1) {
-				_authorBuilder = new AuthorBuilder();
-
-				_consumer.accept(_authorBuilder);
-
-				String sql = createSQL(_authorBuilder);
-
-				PreparedStatement preparedStatement =
-					_conn.prepareStatement(
-						sql, Statement.RETURN_GENERATED_KEYS);
-
-				int affectedRows = preparedStatement.executeUpdate();
-
-				if (affectedRows == 0) {
-					throw new SQLException("Failed to execute " + sql);
-				}
-
-				try (ResultSet keysResult =
-						 preparedStatement.getGeneratedKeys()) {
-
-					keysResult.next();
-
-					_createdId = keysResult.getLong(1);
-				}
-
-				Stream<BookContext> bookContextStream =
-					_authorBuilder.books.apply(this);
-
-				bookContextStream.forEach(bc -> bc.andMap(BookQuerier::id));
-			}
-
-			return _createdId;
-		}
-
-		private String createSQL(AuthorBuilder authorBuilder) {
-			return "insert into author(name) values('" +
-				authorBuilder.name + "')";
-		}
-
-		@Override
-		public void execute(SqlCommand<AuthorQuerier> command) {
-
-		}
-
+		return (cc) -> {};
 	}
 
-	private class OnlyAuthorContext implements AuthorContext {
-		private String _id;
+	public Stream<AuthorContext> fromBook(BookContext bookContext) {
+		Result<Long> idResult = bookContext.andMap(BookQuerier::id);
 
-		public OnlyAuthorContext(String id) {
-			_id = id;
+		if (idResult.getErrors().size() > 0) {
+			return Stream.<AuthorContext>empty();
 		}
 
-		@Override
-		public <R> Result<R> andMap(Function<AuthorQuerier, R> mapper) {
+		try {
 
-			try {
-				return new CorrectResult<R>(
-					withResultSet(
-						(resultSet) ->
-							mapper.apply(
-								new AuthorQuerierFromResult(resultSet))));
-			}
-			catch (SQLException e) {
+			PreparedStatement preparedStatement = conn.prepareStatement(
+				"SELECT * FROM AUTHOR A INNER JOIN AUTHOR_BOOK AB ON " +
+					"A.id=AB.authorId WHERE AB.bookId = ?");
 
-				ErrorResult<R> errorResult = new ErrorResult<>();
-
-				errorResult.addError(e.getMessage());
-
-				return errorResult;
-			}
-		}
-
-		@Override
-		public void execute(SqlCommand<AuthorQuerier> command) {
-
-			List<String> sqls = new ArrayList<>();
-
-			command.accept(new SqlCommandContext<AuthorQuerier>() {
-				@Override
-				public void addSql(String sql) {
-					sqls.add(sql);
-				}
-
-				@Override
-				public AuthorQuerier get() {
-					try {
-						return withResultSet(AuthorQuerierFromResult::new);
-					}
-					catch (SQLException e) {
-						//TODO: append errors to context
-						throw new RuntimeException();
-					}
-				}
-			});
-
-			for (String sql : sqls) {
-				String query = sql + " WHERE id = " + _id;
-
-				try {
-					PreparedStatement preparedStatement =
-						preparedStatement = _conn.prepareStatement(query);
-
-					preparedStatement.executeUpdate();
-				}
-				catch (SQLException e) {
-					//TODO: append errors to context
-					throw new RuntimeException(e);
-				}
-			}
-		}
-
-		private <T> T withResultSet(
-				Function<ResultSet, T> mapping)
-			throws SQLException {
-
-			String sql = "select * from author where id=" + _id;
-
-			PreparedStatement preparedStatement =
-				_conn.prepareStatement(sql);
+			preparedStatement.setLong(1, idResult.get());
 
 			ResultSet resultSet = preparedStatement.executeQuery();
 
-			return mapping.apply(resultSet);
+			return StreamSupport.stream(new Spliterator<AuthorContext>() {
+				@Override
+				public boolean tryAdvance(
+					Consumer<? super AuthorContext> action) {
 
+					try {
+						if (!resultSet.next())  {
+							return false;
+						}
+						action.accept(
+							new OnlyAuthorContext(
+									AuthorService.this,
+									Long.toString(resultSet.getLong("id"))));
+					}
+					catch (SQLException e) {
+						e.printStackTrace();
+
+						return false;
+					}
+
+					return true;
+				}
+
+				@Override
+				public Spliterator<AuthorContext> trySplit() {
+					return null;
+				}
+
+				@Override
+				public long estimateSize() {
+					return -1;
+				}
+
+				@Override
+				public int characteristics() {
+					return IMMUTABLE;
+				}
+			}, false);
 		}
+		catch (SQLException e) {
+			e.printStackTrace();
 
-		private class AuthorQuerierFromResult implements AuthorQuerier {
-			private ResultSet _resultSet;
-
-			public AuthorQuerierFromResult(ResultSet resultSet) {
-
-				_resultSet = resultSet;
-
-				try {
-					_resultSet.next();
-				}
-				catch (SQLException e) {
-					throw new RuntimeException(e);
-				}
-			}
-
-			@Override
-			public String id() {
-				try {
-					return Long.toString(_resultSet.getLong("id"));
-				}
-				catch (SQLException e) {
-					throw new RuntimeException(e);
-				}
-			}
-
-			@Override
-			public String name() {
-				try {
-					return _resultSet.getString("name");
-				}
-				catch (SQLException e) {
-					throw new RuntimeException(e);
-				}
-			}
-
-			@Override
-			public Stream<? extends ReadOnlyContext<BookQuerier>> books() {
-				try {
-					return _bookService.fromAuthor(new OnlyAuthorContext(id()));
-				}
-				catch (SQLException e) {
-					return Stream.empty();
-				}
-			}
-
+			throw new RuntimeException(e);
 		}
 	}
-
-	private class AuthorQuerierFromBuilder implements AuthorQuerier {
-
-		private long _id;
-		private AuthorBuilder _authorBuilder;
-
-		public AuthorQuerierFromBuilder(
-			long id, AuthorBuilder authorBuilder) {
-
-			_id = id;
-			_authorBuilder = authorBuilder;
-		}
-
-		@Override
-		public String id() {
-			return Long.toString(_id);
-		}
-
-		@Override
-		public String name() {
-			return _authorBuilder.name;
-		}
-
-		@Override
-		public Stream<? extends ReadOnlyContext<BookQuerier>> books() {
-			return _authorBuilder.books.apply(
-				new OnlyAuthorContext(Long.toString(_id)));
-		}
-	}
-
-	public static SqlCommand<AuthorQuerier> update(String newName) {
-		return (cc) -> {
-			//FIXME: little bobby tables
-			cc.addSql("UPDATE AUTHOR SET NAME='" + newName+"'");
-		};
-	};
 }

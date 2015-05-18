@@ -24,14 +24,13 @@ import java.util.stream.Stream;
  */
 public class AuthorBuilder {
 	protected String name;
-	protected Function<AuthorContext, Stream<BookContext>> books;
+	protected Stream<BookContext> books = Stream.empty();
 
 	public AuthorBuilder name(String name) {
 		this.name = name;return this;
 	}
 
-	public AuthorBuilder books(
-		Function<AuthorContext, Stream<BookContext>> books) {
+	public AuthorBuilder books(Stream<BookContext> books) {
 
 		this.books = books;
 

@@ -12,37 +12,15 @@
  * details.
  */
 
-package org.funbizmodel.bookstore.model.book;
-
-import org.funbizmodel.bookstore.model.author.AuthorContext;
-
-import java.util.stream.Stream;
+package org.funbizmodel.bookstore.model.author;
 
 /**
- * @author Carlos Sierra Andrés
- */
-public class BookBuilder {
+* @author Carlos Sierra Andrés
+*/
+public class AuthorUpdater {
+	protected String newName;
 
-	protected Stream<AuthorContext> _authorContexts = Stream.empty();
-	protected String _isbn;
-	protected String _title;
-
-	public BookBuilder isbn(String isbn) {
-		_isbn = isbn;
-
-		return this;
+	public void setNewName(String newName) {
+		this.newName = newName;
 	}
-
-	public BookBuilder title(String title) {
-		_title = title;
-
-		return this;
-	}
-
-	public BookBuilder addAuthors(Stream<AuthorContext> authorContext) {
-		_authorContexts = authorContext;
-
-		return this;
-	}
-
 }

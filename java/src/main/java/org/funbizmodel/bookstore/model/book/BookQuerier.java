@@ -21,6 +21,7 @@ import org.funbizmodel.bookstore.service.ReadOnlyContext;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * @author Carlos Sierra Andrés
@@ -30,10 +31,11 @@ public interface BookQuerier {
 	public long id();
 	public String isbn();
 	public String title();
-	public ReadOnlyContext<AuthorQuerier> author();
+	public Stream<? extends ReadOnlyContext<AuthorQuerier>> authors();
 
 	public static Optional<BookQuerier> fromResultSet(
-		final AuthorService authorService, ResultSet resultSet) {
+		final AuthorService authorService, BookService bookService,
+		ResultSet resultSet) {
 
 		try {
 			if (!resultSet.next()) {
@@ -43,7 +45,6 @@ public interface BookQuerier {
 			final long id = resultSet.getLong("id");
 			final String isbn = resultSet.getString("isbn");
 			final String title = resultSet.getString("title");
-			final long authorId = resultSet.getLong("authorId");
 
 			return Optional.of(new BookQuerier() {
 				@Override
@@ -62,8 +63,11 @@ public interface BookQuerier {
 				}
 
 				@Override
-				public ReadOnlyContext<AuthorQuerier> author() {
-					return authorService.withId(Long.toString(authorId));
+				public Stream<? extends ReadOnlyContext<AuthorQuerier>>
+				authors() {
+
+					return authorService.fromBook(
+						bookService.withId(Long.toString(id())));
 				}
 			});
 		}
