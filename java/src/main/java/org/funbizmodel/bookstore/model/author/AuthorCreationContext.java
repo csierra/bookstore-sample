@@ -21,6 +21,7 @@ import org.funbizmodel.bookstore.service.ErrorResult;
 import org.funbizmodel.bookstore.service.Result;
 import org.funbizmodel.bookstore.service.SqlCommand;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,16 +35,16 @@ import java.util.stream.Stream;
 */
 class AuthorCreationContext implements AuthorContext {
 
-	private AuthorService _authorService;
+	private Connection _conn;
 	private final Consumer<AuthorBuilder> _consumer;
 	private AuthorBuilder _authorBuilder;
 	private volatile long _createdId = -1;
 	private SQLException _exception;
 
 	public AuthorCreationContext(
-		AuthorService authorService, Consumer<AuthorBuilder> consumer) {
+		Connection conn, Consumer<AuthorBuilder> consumer) {
+		_conn = conn;
 
-		_authorService = authorService;
 		_consumer = consumer;
 	}
 
@@ -57,8 +58,7 @@ class AuthorCreationContext implements AuthorContext {
 
 			return new CorrectResult<>(
 				mapper.apply(
-					new AuthorQuerierFromBuilder(
-						_authorService, id, _authorBuilder)));
+					new AuthorQuerierFromBuilder(id, _authorBuilder)));
 
 		}
 		catch (SQLException e) {
@@ -79,7 +79,7 @@ class AuthorCreationContext implements AuthorContext {
 			String sql = createSQL(_authorBuilder);
 
 			PreparedStatement preparedStatement =
-				_authorService.conn.prepareStatement(
+				_conn.prepareStatement(
 					sql, Statement.RETURN_GENERATED_KEYS);
 
 			int affectedRows = preparedStatement.executeUpdate();
@@ -105,7 +105,7 @@ class AuthorCreationContext implements AuthorContext {
 				PreparedStatement addBookStatement =
 					null;
 				try {
-					addBookStatement = _authorService.conn.prepareStatement(
+					addBookStatement = _conn.prepareStatement(
 						"INSERT INTO AUTHOR_BOOK (authorId, bookId) values " +
 							"(?,?)");
 					addBookStatement.setLong(1, _createdId);

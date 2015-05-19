@@ -24,6 +24,7 @@ import org.funbizmodel.bookstore.service.Result;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 import static org.funbizmodel.bookstore.model.author.AuthorService.update;
@@ -98,6 +99,8 @@ public class Main {
 						bq -> bq.andMap(BookQuerier::title)));
 
 			updatedBooks.get().forEach(System.out::println);
+
+			books.all().map(bc -> bc.andMap(bq -> Arrays.asList(bq.id(), bq.title()))).forEach(System.out::println);
 		}
 	}
 

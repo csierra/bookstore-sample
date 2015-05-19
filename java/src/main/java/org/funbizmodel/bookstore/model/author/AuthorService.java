@@ -18,6 +18,7 @@ import org.funbizmodel.bookstore.model.book.BookContext;
 import org.funbizmodel.bookstore.model.book.BookQuerier;
 import org.funbizmodel.bookstore.model.book.BookService;
 import org.funbizmodel.bookstore.service.Result;
+import org.funbizmodel.bookstore.service.Service;
 import org.funbizmodel.bookstore.service.SqlCommand;
 
 import java.sql.Connection;
@@ -32,7 +33,9 @@ import java.util.stream.StreamSupport;
 /**
  * @author Carlos Sierra Andrés
  */
-public class AuthorService {
+public class AuthorService
+	implements Service<AuthorBuilder, AuthorQuerier, AuthorContext> {
+
 	BookService bookService;
 	Connection conn;
 	
@@ -44,25 +47,30 @@ public class AuthorService {
 		this.conn = conn;
 	}
 
+	@Override
 	public AuthorContext create(Consumer<AuthorBuilder> consumer) {
 
-		return new AuthorCreationContext(this, consumer);
+		return new AuthorCreationContext(conn, consumer);
 	}
 
-	public Stream<AuthorContext> create(Consumer<AuthorBuilder> ... consumers) {
+	@Override
+	public Stream<AuthorContext> create(Consumer<AuthorBuilder>... consumers) {
 		return Stream.of(consumers).map(this::create);
 	}
 
+	@Override
 	public Stream<AuthorContext> create(
 		Stream<Consumer<AuthorBuilder>> consumers) {
 
 		return consumers.map(this::create);
 	}
 
+	@Override
 	public AuthorContext withId(String id) {
 		return new OnlyAuthorContext(this, id);
 	}
 
+	@Override
 	public Stream<AuthorContext> all() {
 		return Stream.<AuthorContext>builder().build();
 	}

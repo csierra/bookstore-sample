@@ -24,14 +24,10 @@ import java.util.stream.Stream;
 */
 class AuthorQuerierFromBuilder implements AuthorQuerier {
 
-	private AuthorService _authorService;
 	private long _id;
 	private AuthorBuilder _authorBuilder;
 
-	public AuthorQuerierFromBuilder(AuthorService authorService,
-									long id, AuthorBuilder authorBuilder) {
-		_authorService = authorService;
-
+	public AuthorQuerierFromBuilder(long id, AuthorBuilder authorBuilder) {
 		_id = id;
 		_authorBuilder = authorBuilder;
 	}
