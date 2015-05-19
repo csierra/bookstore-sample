@@ -103,7 +103,7 @@ public class AuthorService
 				String authorId = authorQuerier.id();
 
 				addedBooks.forEach(bc -> {
-					Long bookId = bc.andMap(BookQuerier::id).get();
+					Long bookId = bc.map(BookQuerier::id).get();
 
 					sb.append("INSERT INTO AUTHOR_BOOK (AUTHORID, BOOKID) VALUES (" + authorId + ", " + bookId + ");");
 				});
@@ -116,7 +116,7 @@ public class AuthorService
 	}
 
 	public Stream<AuthorContext> fromBook(BookContext bookContext) {
-		Result<Long> idResult = bookContext.andMap(BookQuerier::id);
+		Result<Long> idResult = bookContext.map(BookQuerier::id);
 
 		if (idResult.getErrors().size() > 0) {
 			return Stream.<AuthorContext>empty();

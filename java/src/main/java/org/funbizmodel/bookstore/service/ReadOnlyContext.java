@@ -21,6 +21,6 @@ import java.util.function.Function;
  */
 public interface ReadOnlyContext<Q> {
 
-	<R> Result<R> andMap(Function<Q, R> mapper);
+	<R> Result<R> map(Function<Q, R> mapper);
 
 }

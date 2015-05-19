@@ -17,7 +17,6 @@ package org.funbizmodel.bookstore.model.book;
 import org.funbizmodel.bookstore.model.author.AuthorQuerier;
 import org.funbizmodel.bookstore.service.CorrectResult;
 import org.funbizmodel.bookstore.service.ErrorResult;
-import org.funbizmodel.bookstore.service.ReadOnlyContext;
 import org.funbizmodel.bookstore.service.Result;
 import org.funbizmodel.bookstore.service.SqlCommand;
 
@@ -47,7 +46,7 @@ class BookCreationContext implements BookContext {
 	}
 
 	@Override
-	public <R> Result<R> andMap(Function<BookQuerier, R> mapper) {
+	public <R> Result<R> map(Function<BookQuerier, R> mapper) {
 		try {
 			if (_exception != null) {
 				throw _exception;
@@ -96,7 +95,7 @@ class BookCreationContext implements BookContext {
 				_createdId = keysResult.getLong(1);
 
 				_bookBuilder._authorContexts.forEach(ac -> {
-					Result<String> authorId = ac.andMap(AuthorQuerier::id);
+					Result<String> authorId = ac.map(AuthorQuerier::id);
 
 					try {
 						PreparedStatement authorAddStatement =
@@ -161,7 +160,7 @@ class BookCreationContext implements BookContext {
 		@Override
 		public <R> Stream<R> authors(Function<AuthorQuerier, R> function) {
 			return _bookBuilder._authorContexts.map(
-				ac -> ac.andMap(function).get());
+				ac -> ac.map(function).get());
 		}
 	}
 }

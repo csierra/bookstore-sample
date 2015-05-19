@@ -26,7 +26,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -125,7 +124,7 @@ public class BookService
 					"B.id=AB.bookId where AB.authorId=?");
 
 		preparedStatement.setLong(
-			1, Long.parseLong(authorContext.andMap(AuthorQuerier::id).get()));
+			1, Long.parseLong(authorContext.map(AuthorQuerier::id).get()));
 
 		ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -141,7 +140,7 @@ public class BookService
 		}
 
 		@Override
-		public <R> Result<R> andMap(
+		public <R> Result<R> map(
 			Function<BookQuerier, R> mapper) {
 
 			return new CorrectResult<>(

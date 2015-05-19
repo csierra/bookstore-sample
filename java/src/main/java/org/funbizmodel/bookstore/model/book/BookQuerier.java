@@ -16,7 +16,6 @@ package org.funbizmodel.bookstore.model.book;
 
 import org.funbizmodel.bookstore.model.author.AuthorQuerier;
 import org.funbizmodel.bookstore.model.author.AuthorService;
-import org.funbizmodel.bookstore.service.ReadOnlyContext;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -68,7 +67,7 @@ public interface BookQuerier {
 					Function<AuthorQuerier, R> function) {
 
 					return authorService.fromBook(
-						bookService.withId(Long.toString(id()))).map(ac -> ac.andMap(function).get());
+						bookService.withId(Long.toString(id()))).map(ac -> ac.map(function).get());
 				}
 			});
 		}

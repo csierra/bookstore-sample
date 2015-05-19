@@ -18,7 +18,6 @@ import org.funbizmodel.bookstore.model.book.BookQuerier;
 import org.funbizmodel.bookstore.model.book.BookService;
 import org.funbizmodel.bookstore.service.CorrectResult;
 import org.funbizmodel.bookstore.service.ErrorResult;
-import org.funbizmodel.bookstore.service.ReadOnlyContext;
 import org.funbizmodel.bookstore.service.Result;
 import org.funbizmodel.bookstore.service.SqlCommand;
 import org.funbizmodel.bookstore.service.SqlCommandContext;
@@ -49,7 +48,7 @@ class OnlyAuthorContext implements AuthorContext {
 	}
 
 	@Override
-	public <R> Result<R> andMap(Function<AuthorQuerier, R> mapper) {
+	public <R> Result<R> map(Function<AuthorQuerier, R> mapper) {
 
 		try {
 			return new CorrectResult<R>(
@@ -181,7 +180,7 @@ class OnlyAuthorContext implements AuthorContext {
 		public <R> Stream<R> books(Function<BookQuerier, R> function) {
 			try {
 				return _bookService.fromAuthor(
-					new OnlyAuthorContext(_conn, _bookService, id())).map(bc -> bc.andMap(function).get());
+					new OnlyAuthorContext(_conn, _bookService, id())).map(bc -> bc.map(function).get());
 			}
 			catch (SQLException e) {
 				return Stream.empty();

@@ -59,8 +59,7 @@ public class Main {
 
 			AuthorContext zutano = author.create(ab -> ab.name("Zutano"));
 
-			String zutanoId = zutano.andMap(AuthorQuerier::id).get();
-
+			String zutanoId = zutano.map(AuthorQuerier::id).get();
 
 			//Create author and books... one book has one extra author
 			author.create(ab -> ab.
@@ -70,14 +69,14 @@ public class Main {
 							bb -> bb.isbn("anotherisbn").title("anothertitle")
 						)
 					)
-			).andMap(AuthorQuerier::id);
+			).map(AuthorQuerier::id);
 
 
 			//Get the authors of each of these two books
 			books.fromTitles("onetitle", "anothertitle").forEach(bc ->
 					author.fromBook(bc).forEach(
 						ac ->
-							System.out.println(ac.andMap(AuthorQuerier::name))
+							System.out.println(ac.map(AuthorQuerier::name))
 					)
 			);
 
@@ -85,7 +84,7 @@ public class Main {
 			books.create(
 				bb -> bb.isbn("thirdisbn").title("yetanothertitle").
 					addAuthors(Stream.of(author.create(ab -> ab.name("Fulano"))))).
-			andMap(BookQuerier::id);
+				map(BookQuerier::id);
 
 			//Update author changing his name and adding a book. Query the
 			// resulting books of that author
@@ -95,11 +94,11 @@ public class Main {
 					au.setNewName("Mengano");
 					au.addBooks(books.fromTitles("yetanothertitle"));
 				})).
-				andMap(aq -> aq.books(BookQuerier::title));
+				map(aq -> aq.books(BookQuerier::title));
 
 			updatedBooks.get().forEach(System.out::println);
 
-			author.withId("1").andMap(
+			author.withId("1").map(
 				aq -> aq.books(BookQuerier::title)).
 				getOrElse((errors) -> errors.stream()).forEach(
 					System.out::println);

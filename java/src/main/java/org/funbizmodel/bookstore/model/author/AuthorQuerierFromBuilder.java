@@ -15,7 +15,6 @@
 package org.funbizmodel.bookstore.model.author;
 
 import org.funbizmodel.bookstore.model.book.BookQuerier;
-import org.funbizmodel.bookstore.service.ReadOnlyContext;
 
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -45,6 +44,6 @@ class AuthorQuerierFromBuilder implements AuthorQuerier {
 
 	@Override
 	public <R> Stream<R> books(Function<BookQuerier, R> function) {
-		return _authorBuilder.books.map(bq -> bq.andMap(function).get());
+		return _authorBuilder.books.map(bq -> bq.map(function).get());
 	}
 }
