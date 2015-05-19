@@ -75,6 +75,10 @@ public class AuthorService
 		return Stream.<AuthorContext>builder().build();
 	}
 
+	public static SqlCommand<AuthorQuerier> DELETE = cc -> {
+		cc.addSql("DELETE FROM AUTHOR");
+	};
+
 	public static SqlCommand<AuthorQuerier> update(
 		Consumer<AuthorUpdater> consumer) {
 

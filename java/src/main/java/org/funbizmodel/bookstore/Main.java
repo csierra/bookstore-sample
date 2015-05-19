@@ -25,8 +25,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.funbizmodel.bookstore.model.author.AuthorService.DELETE;
 import static org.funbizmodel.bookstore.model.author.AuthorService.update;
 
 /**
@@ -61,15 +63,14 @@ public class Main {
 			author.setBookService(books);
 			books.setAuthorService(author);
 
-			AuthorContext zutano = author.create(ab -> ab.name("Zutano"));
+			String zutanoId = author.create(ab -> ab.name("Zutano")).map(AuthorQuerier::id).get();
 
-			String zutanoId = zutano.map(AuthorQuerier::id).get();
 
 			//Create author and books... one book has one extra author
 			author.create(ab -> ab.
 					name("Federico").
 					books(books.create(
-							bb -> bb.isbn("oneisbn").title("onetitle").addAuthors(Stream.of(zutano)),
+							bb -> bb.isbn("oneisbn").title("onetitle").addAuthors(Stream.of(author.withId(zutanoId))),
 							bb -> bb.isbn("anotherisbn").title("anothertitle")
 						)
 					)
@@ -90,22 +91,47 @@ public class Main {
 					addAuthors(Stream.of(author.create(ab -> ab.name("Fulano"))))).
 				map(BookQuerier::id);
 
+			//Create a view object from the query before
+			author.withId(zutanoId).map(
+				aq -> new AuthorWithBooks(
+					aq.name(), aq.books(BookQuerier::title).collect(Collectors.toList())
+				)
+			).andThen(System.out::println);
+
 			//Update author changing his name and adding a book. Query the
 			// resulting books of that author
 
-			Result<Stream<String>> updatedBooks = author.withId(zutanoId).execute(
+			author.withId(zutanoId).execute(
 				update(au -> {
 					au.setNewName("Mengano");
 					au.addBooks(books.fromTitles("yetanothertitle"));
 				})).
-				map(aq -> aq.books(BookQuerier::title));
+				map(aq -> aq.books(BookQuerier::title)).andThen(s -> s.forEach(System.out::println));
 
-			updatedBooks.get().forEach(System.out::println);
+			//Create a view object from the query after
+			author.withId(zutanoId).map(
+				aq -> new AuthorWithBooks(
+					aq.name(), aq.books(BookQuerier::title).collect(Collectors.toList())
+				)
+			).andThen(System.out::println);
 
-			author.withId("1").map(
-				aq -> aq.books(BookQuerier::title)).
-				getOrElse((errors) -> errors.stream()).forEach(
-					System.out::println);
+			//DELETE the author
+
+			author.withId(zutanoId).execute(DELETE);
+
+			//IT does not exist anymore
+			author.withId(zutanoId).map(AuthorQuerier::name).orElse(c -> System.out.println("DOES NOT EXIST!!"));
+
+			//Other authors still exist
+			books.all().map(
+				bc -> bc.map(
+					bq -> bq.authors(AuthorQuerier::name))).
+				forEach(
+					r -> System.out.println(
+						r.getOrElse(
+							e -> Stream.of("ERROR!")).collect(Collectors.toList())
+					)
+				);
 
 		}
 	}

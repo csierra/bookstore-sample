@@ -57,7 +57,7 @@ class OnlyAuthorContext implements AuthorContext {
 						mapper.apply(
 							new AuthorQuerierFromResult(resultSet))));
 		}
-		catch (SQLException e) {
+		catch (Exception e) {
 
 			ErrorResult<R> errorResult = new ErrorResult<>();
 

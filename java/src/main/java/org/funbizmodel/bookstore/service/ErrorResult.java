@@ -44,6 +44,8 @@ public class ErrorResult<R> implements Result<R> {
 
 	@Override
 	public Result<R> orElse(Consumer<List<String>> consumer) {
+		consumer.accept(_errors);
+
 		return this;
 	}
 
