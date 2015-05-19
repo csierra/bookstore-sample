@@ -43,12 +43,16 @@ public class Main {
 			"jdbc:h2:./bookstore", "sa", "")) {
 
 			conn.prepareStatement(
-				"DROP TABLE AUTHOR IF EXISTS; DROP TABLE BOOK IF EXISTS; DROP TABLE AUTHOR_BOOK IF EXISTS;").executeUpdate();
+				"DROP TABLE AUTHOR IF EXISTS; " +
+				"DROP TABLE BOOK IF EXISTS; " +
+				"DROP TABLE AUTHOR_BOOK IF EXISTS;").
+			executeUpdate();
 
 			conn.prepareStatement(
 				"CREATE TABLE AUTHOR(id long primary key auto_increment, name varchar);" +
 				"CREATE TABLE BOOK(id long primary key auto_increment, isbn varchar, title varchar);" +
-				"CREATE TABLE AUTHOR_BOOK (authorId long, bookId long);").executeUpdate();
+				"CREATE TABLE AUTHOR_BOOK (authorId long, bookId long);").
+			executeUpdate();
 
 			AuthorService author = new AuthorService(conn);
 
