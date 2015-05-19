@@ -159,8 +159,9 @@ class BookCreationContext implements BookContext {
 		}
 
 		@Override
-		public Stream<? extends ReadOnlyContext<AuthorQuerier>> authors() {
-			return _bookBuilder._authorContexts;
+		public <R> Stream<R> authors(Function<AuthorQuerier, R> function) {
+			return _bookBuilder._authorContexts.map(
+				ac -> ac.andMap(function).get());
 		}
 	}
 }

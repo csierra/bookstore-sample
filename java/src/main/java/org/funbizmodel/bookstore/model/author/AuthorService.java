@@ -67,7 +67,7 @@ public class AuthorService
 
 	@Override
 	public AuthorContext withId(String id) {
-		return new OnlyAuthorContext(this, id);
+		return new OnlyAuthorContext(conn, bookService, id);
 	}
 
 	@Override
@@ -143,7 +143,7 @@ public class AuthorService
 						}
 						action.accept(
 							new OnlyAuthorContext(
-									AuthorService.this,
+									conn, bookService,
 									Long.toString(resultSet.getLong("id"))));
 					}
 					catch (SQLException e) {

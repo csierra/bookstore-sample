@@ -15,6 +15,7 @@
 package org.funbizmodel.bookstore.model.author;
 
 import org.funbizmodel.bookstore.model.book.BookQuerier;
+import org.funbizmodel.bookstore.model.book.BookService;
 import org.funbizmodel.bookstore.service.CorrectResult;
 import org.funbizmodel.bookstore.service.ErrorResult;
 import org.funbizmodel.bookstore.service.ReadOnlyContext;
@@ -22,6 +23,7 @@ import org.funbizmodel.bookstore.service.Result;
 import org.funbizmodel.bookstore.service.SqlCommand;
 import org.funbizmodel.bookstore.service.SqlCommandContext;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,11 +37,14 @@ import java.util.stream.Stream;
 * @author Carlos Sierra Andrés
 */
 class OnlyAuthorContext implements AuthorContext {
-	private AuthorService _authorService;
 	private String _id;
+	private Connection _conn;
+	private BookService _bookService;
 
-	public OnlyAuthorContext(AuthorService authorService, String id) {
-		_authorService = authorService;
+	public OnlyAuthorContext(
+		Connection conn, BookService bookService, String id) {
+		_conn = conn;
+		_bookService = bookService;
 		_id = id;
 	}
 
@@ -97,7 +102,7 @@ class OnlyAuthorContext implements AuthorContext {
 
 			try {
 				PreparedStatement preparedStatement =
-					preparedStatement = _authorService.conn.prepareStatement(query);
+					_conn.prepareStatement(query);
 
 				preparedStatement.executeUpdate();
 			}
@@ -109,7 +114,7 @@ class OnlyAuthorContext implements AuthorContext {
 
 		for (String insert : inserts) {
 			try {
-				Statement statement = _authorService.conn.createStatement();
+				Statement statement = _conn.createStatement();
 
 				statement.execute(insert);
 			}
@@ -129,7 +134,7 @@ class OnlyAuthorContext implements AuthorContext {
 		String sql = "select * from author where id=" + _id;
 
 		PreparedStatement preparedStatement =
-			_authorService.conn.prepareStatement(sql);
+			_conn.prepareStatement(sql);
 
 		ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -173,9 +178,10 @@ class OnlyAuthorContext implements AuthorContext {
 		}
 
 		@Override
-		public Stream<? extends ReadOnlyContext<BookQuerier>> books() {
+		public <R> Stream<R> books(Function<BookQuerier, R> function) {
 			try {
-				return _authorService.bookService.fromAuthor(new OnlyAuthorContext(_authorService, id()));
+				return _bookService.fromAuthor(
+					new OnlyAuthorContext(_conn, _bookService, id())).map(bc -> bc.andMap(function).get());
 			}
 			catch (SQLException e) {
 				return Stream.empty();

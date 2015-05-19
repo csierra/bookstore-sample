@@ -21,6 +21,7 @@ import org.funbizmodel.bookstore.service.ReadOnlyContext;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -31,7 +32,7 @@ public interface BookQuerier {
 	public long id();
 	public String isbn();
 	public String title();
-	public Stream<? extends ReadOnlyContext<AuthorQuerier>> authors();
+	public <R> Stream<R> authors(Function<AuthorQuerier, R> function);
 
 	public static Optional<BookQuerier> fromResultSet(
 		final AuthorService authorService, BookService bookService,
@@ -63,11 +64,11 @@ public interface BookQuerier {
 				}
 
 				@Override
-				public Stream<? extends ReadOnlyContext<AuthorQuerier>>
-				authors() {
+				public <R> Stream<R> authors(
+					Function<AuthorQuerier, R> function) {
 
 					return authorService.fromBook(
-						bookService.withId(Long.toString(id())));
+						bookService.withId(Long.toString(id()))).map(ac -> ac.andMap(function).get());
 				}
 			});
 		}

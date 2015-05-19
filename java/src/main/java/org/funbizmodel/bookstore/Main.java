@@ -24,7 +24,7 @@ import org.funbizmodel.bookstore.service.Result;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.funbizmodel.bookstore.model.author.AuthorService.update;
@@ -89,19 +89,40 @@ public class Main {
 
 			//Update author changing his name and adding a book. Query the
 			// resulting books of that author
-			Result<Stream<Result<String>>> updatedBooks =
-				author.withId(zutanoId).execute(
-					update(au -> {
-						au.setNewName("Mengano");
-						au.addBooks(books.fromTitles("yetanothertitle"));
-					})).
-					andMap(aq -> aq.books().map(
-						bq -> bq.andMap(BookQuerier::title)));
+
+			Result<Stream<String>> updatedBooks = author.withId(zutanoId).execute(
+				update(au -> {
+					au.setNewName("Mengano");
+					au.addBooks(books.fromTitles("yetanothertitle"));
+				})).
+				andMap(aq -> aq.books(BookQuerier::title));
 
 			updatedBooks.get().forEach(System.out::println);
 
-			books.all().map(bc -> bc.andMap(bq -> Arrays.asList(bq.id(), bq.title()))).forEach(System.out::println);
+			author.withId("1").andMap(
+				aq -> aq.books(BookQuerier::title)).
+				getOrElse((errors) -> errors.stream()).forEach(
+					System.out::println);
+
 		}
 	}
 
+	static class AuthorWithBooks {
+		String name;
+
+		public AuthorWithBooks(String name, List<String> bookTitles) {
+			this.name = name;
+			this.bookTitles = bookTitles;
+		}
+
+		@Override
+		public String toString() {
+			return "AuthorWithBooks{" +
+				"name='" + name + '\'' +
+				", bookTitles=" + bookTitles +
+				'}';
+		}
+
+		List<String> bookTitles;
+	}
 }

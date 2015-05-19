@@ -15,6 +15,8 @@
 package org.funbizmodel.bookstore.service;
 
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author Carlos Sierra Andrés
@@ -22,4 +24,7 @@ import java.util.List;
 public interface Result<R> {
 	public List<String> getErrors();
 	public R get();
+	public Result<R> andThen(Consumer<R> consumer);
+	public Result<R> orElse(Consumer<List<String>> errors);
+	public R getOrElse(Function<List<String>, R> supplier);
 }

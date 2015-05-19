@@ -17,6 +17,8 @@ package org.funbizmodel.bookstore.model.author;
 import org.funbizmodel.bookstore.model.book.BookQuerier;
 import org.funbizmodel.bookstore.service.ReadOnlyContext;
 
+import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -27,6 +29,6 @@ public interface AuthorQuerier {
 
 	public String name();
 
-	public <R> Stream<? extends ReadOnlyContext<BookQuerier>> books();
+	public <R> Stream<R> books(Function<BookQuerier, R> function);
 
 }

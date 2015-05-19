@@ -16,6 +16,9 @@ package org.funbizmodel.bookstore.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author Carlos Sierra Andrés
@@ -32,6 +35,21 @@ public class ErrorResult<R> implements Result<R> {
 	@Override
 	public R get() {
 		throw new RuntimeException(_errors.toString());
+	}
+
+	@Override
+	public Result<R> andThen(Consumer<R> consumer) {
+		return this;
+	}
+
+	@Override
+	public Result<R> orElse(Consumer<List<String>> consumer) {
+		return this;
+	}
+
+	@Override
+	public R getOrElse(Function<List<String>, R> function) {
+		return function.apply(_errors);
 	}
 
 	public void addError(String error) {

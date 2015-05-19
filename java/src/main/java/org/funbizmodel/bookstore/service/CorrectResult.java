@@ -16,6 +16,8 @@ package org.funbizmodel.bookstore.service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -23,7 +25,6 @@ import java.util.function.Supplier;
  */
 public class CorrectResult<R> implements Result<R> {
 
-	private Supplier<R> _supplier;
 	private R _result;
 
 	public CorrectResult(R result) {
@@ -39,6 +40,23 @@ public class CorrectResult<R> implements Result<R> {
 	@Override
 	public R get() {
 		return _result;
+	}
+
+	@Override
+	public Result<R> andThen(Consumer<R> consumer) {
+		consumer.accept(_result);
+
+		return this;
+	}
+
+	@Override
+	public Result<R> orElse(Consumer<List<String>> errors) {
+		return this;
+	}
+
+	@Override
+	public R getOrElse(Function<List<String>, R> function) {
+		return get();
 	}
 
 	@Override
