@@ -22,13 +22,12 @@ import java.util.function.Consumer;
 /**
  * @author Carlos Sierra Andrés
  */
-public interface SqlCommand<Q> extends Command<SqlCommandContext<Q>> {
+public interface SqlCommand extends Command<SqlCommandContext> {
 
 	@Override
-	default SqlCommand<Q> andThen(
-		Consumer<? super SqlCommandContext<Q>> after) {
+	default SqlCommand andThen(Consumer<? super SqlCommandContext> after) {
 		Objects.requireNonNull(after);
-
-		return (SqlCommandContext<Q> t) -> { accept(t); after.accept(t); };
+		return sqlCommandContext -> {accept(sqlCommandContext); after.accept(sqlCommandContext);};
 	}
+
 }

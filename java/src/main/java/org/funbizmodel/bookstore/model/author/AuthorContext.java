@@ -21,5 +21,5 @@ import org.funbizmodel.bookstore.service.SqlCommand;
  * @author Carlos Sierra Andrés
  */
 public interface AuthorContext
-	extends Context<AuthorQuerier, SqlCommand<AuthorQuerier>> {
+	extends Context<AuthorQuerier, SqlCommand> {
 }

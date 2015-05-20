@@ -17,8 +17,8 @@ package org.funbizmodel.bookstore.service;
 /**
  * @author Carlos Sierra Andrés
  */
-public interface SqlCommandContext<Q>
-	extends CommandContext<SqlCommandContext<Q>, Q> {
+public interface SqlCommandContext
+	extends CommandContext {
 
 	public void addSql(String sql);
 

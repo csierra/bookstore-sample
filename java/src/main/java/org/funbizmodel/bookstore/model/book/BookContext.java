@@ -21,6 +21,6 @@ import org.funbizmodel.bookstore.service.SqlCommand;
  * @author Carlos Sierra Andrés
  */
 public interface BookContext
-	extends Context<BookQuerier, SqlCommand<BookQuerier>> {
+	extends Context<BookQuerier, SqlCommand> {
 
 }

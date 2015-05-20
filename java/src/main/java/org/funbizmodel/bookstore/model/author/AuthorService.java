@@ -17,16 +17,22 @@ package org.funbizmodel.bookstore.model.author;
 import org.funbizmodel.bookstore.model.book.BookContext;
 import org.funbizmodel.bookstore.model.book.BookQuerier;
 import org.funbizmodel.bookstore.model.book.BookService;
+import org.funbizmodel.bookstore.service.Context;
 import org.funbizmodel.bookstore.service.Result;
 import org.funbizmodel.bookstore.service.Service;
 import org.funbizmodel.bookstore.service.SqlCommand;
+import org.funbizmodel.bookstore.service.SqlCommandContext;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -72,21 +78,21 @@ public class AuthorService
 
 	@Override
 	public Stream<AuthorContext> all() {
-		return Stream.<AuthorContext>builder().build();
+		return null;
 	}
 
-	public static SqlCommand<AuthorQuerier> DELETE = cc -> {
+	public static SqlCommand DELETE = cc -> {
 		cc.addSql("DELETE FROM AUTHOR");
 	};
 
-	public static SqlCommand<AuthorQuerier> update(
+	public static SqlCommand update(
 		Consumer<AuthorUpdater> consumer) {
 
 		AuthorUpdater authorUpdater = new AuthorUpdater();
 
 		consumer.accept(authorUpdater);
 
-		SqlCommand<AuthorQuerier> command = (cc) -> {};
+		SqlCommand command = (cc) -> {};
 
 		if (authorUpdater.newName != null) {
 			command = command.andThen(cc -> {
@@ -100,19 +106,11 @@ public class AuthorService
 
 		if (addedBooks != null) {
 			command = command.andThen(cc -> {
-				StringBuilder sb = new StringBuilder();
-
-				AuthorQuerier authorQuerier = cc.get();
-
-				String authorId = authorQuerier.id();
-
-				addedBooks.forEach(bc -> {
-					Long bookId = bc.map(BookQuerier::id).get();
-
-					sb.append("INSERT INTO AUTHOR_BOOK (AUTHORID, BOOKID) VALUES (" + authorId + ", " + bookId + ");");
-				});
-
-				cc.addInsertSql(sb.toString());
+				addedBooks.forEach(bc ->
+					cc.addSql("INSERT INTO AUTHOR_BOOK (authorid, bookid)\n" +
+						"SELECT id," + bc.map(BookQuerier::id).get() +
+							" from AUTHOR")
+				);
 			});
 		}
 
@@ -179,6 +177,23 @@ public class AuthorService
 			e.printStackTrace();
 
 			throw new RuntimeException(e);
+		}
+	}
+
+	private static class DefaultSqlCommandContext
+		implements SqlCommandContext {
+
+		List<String> sqls = new ArrayList<>();
+		List<String> inserts = new ArrayList<>();
+
+		@Override
+		public void addSql(String sql) {
+			sqls.add(sql);
+		}
+
+		@Override
+		public void addInsertSql(String sql) {
+			inserts.add(sql);
 		}
 	}
 }

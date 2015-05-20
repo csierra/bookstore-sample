@@ -16,6 +16,7 @@ package org.funbizmodel.bookstore.model.book;
 
 import org.funbizmodel.bookstore.model.author.AuthorQuerier;
 import org.funbizmodel.bookstore.model.author.AuthorService;
+import org.funbizmodel.bookstore.service.Context;
 import org.funbizmodel.bookstore.service.CorrectResult;
 import org.funbizmodel.bookstore.service.ReadOnlyContext;
 import org.funbizmodel.bookstore.service.Result;
@@ -148,9 +149,10 @@ public class BookService
 		}
 
 		@Override
-		public BookContext execute(SqlCommand<BookQuerier> command) {
+		public BookContext execute(SqlCommand command) {
 			return this;
 		}
+
 	}
 
 }

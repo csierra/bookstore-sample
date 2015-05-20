@@ -68,12 +68,12 @@ class OnlyAuthorContext implements AuthorContext {
 	}
 
 	@Override
-	public AuthorContext execute(SqlCommand<AuthorQuerier> command) {
+	public AuthorContext execute(SqlCommand command) {
 
 		List<String> sqls = new ArrayList<>();
 		List<String> inserts = new ArrayList<>();
 
-		command.accept(new SqlCommandContext<AuthorQuerier>() {
+		command.accept(new SqlCommandContext() {
 			@Override
 			public void addSql(String sql) {
 				sqls.add(sql);
@@ -82,17 +82,6 @@ class OnlyAuthorContext implements AuthorContext {
 			@Override
 			public void addInsertSql(String sql) {
 				inserts.add(sql);
-			}
-
-			@Override
-			public AuthorQuerier get() {
-				try {
-					return withResultSet(x -> new AuthorQuerierFromResult(x));
-				}
-				catch (SQLException e) {
-					//TODO: append errors to context
-					throw new RuntimeException();
-				}
 			}
 		});
 

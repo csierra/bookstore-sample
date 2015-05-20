@@ -14,12 +14,10 @@
 
 package org.funbizmodel.bookstore;
 
-import org.funbizmodel.bookstore.model.author.AuthorContext;
 import org.funbizmodel.bookstore.model.author.AuthorQuerier;
 import org.funbizmodel.bookstore.model.author.AuthorService;
 import org.funbizmodel.bookstore.model.book.BookQuerier;
 import org.funbizmodel.bookstore.model.book.BookService;
-import org.funbizmodel.bookstore.service.Result;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -116,7 +114,6 @@ public class Main {
 			).andThen(System.out::println);
 
 			//DELETE the author
-
 			author.withId(zutanoId).execute(DELETE);
 
 			//IT does not exist anymore
@@ -139,6 +136,8 @@ public class Main {
 	static class AuthorWithBooks {
 		String name;
 
+		List<String> bookTitles;
+
 		public AuthorWithBooks(String name, List<String> bookTitles) {
 			this.name = name;
 			this.bookTitles = bookTitles;
@@ -151,7 +150,5 @@ public class Main {
 				", bookTitles=" + bookTitles +
 				'}';
 		}
-
-		List<String> bookTitles;
 	}
 }

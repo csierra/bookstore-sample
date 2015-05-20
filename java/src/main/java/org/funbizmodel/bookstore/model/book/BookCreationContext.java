@@ -128,7 +128,7 @@ class BookCreationContext implements BookContext {
 	}
 
 	@Override
-	public BookContext execute(SqlCommand<BookQuerier> command) {
+	public BookContext execute(SqlCommand command) {
 		return this;
 	}
 

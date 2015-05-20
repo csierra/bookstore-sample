@@ -14,12 +14,9 @@
 
 package org.funbizmodel.bookstore.service;
 
-import java.util.function.Supplier;
-
 /**
  * @author Carlos Sierra Andrés
  */
-public interface CommandContext<C extends CommandContext<C, Q>, Q>
-	extends Supplier<Q> {
+public interface CommandContext {
 
 }
